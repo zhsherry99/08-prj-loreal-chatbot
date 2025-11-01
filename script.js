@@ -19,22 +19,23 @@ chatForm.addEventListener("submit", (e) => {
 
   // Disable input while fetching
   userInput.disabled = true;
-
   // Determine worker URL — allow an override from secrets.js if present
   const workerUrl =
     (window.__SECRETS &&
       window.__SECRETS.getWorkerUrl &&
       window.__SECRETS.getWorkerUrl()) ||
     "https://lorealchatbot.sherreo99.workers.dev/";
+ 
 
-  // Show a loading message
+  // Show a loading message (assistant reply will appear below the latest question)
   const loading = appendMessage("ai", "…thinking");
 
   // Build messages array for Chat Completions API
   const messages = [
     {
       role: "system",
-      content: "You are a helpful assistant for L'Oréal product information.",
+      content:
+        "You are a helpful assistant specialized in L'Oréal products, routines, and beauty recommendations. Only answer questions that are directly related to L'Oréal products, skincare, makeup, haircare, fragrances, product usage, ingredients, or personalized beauty routines and recommendations. If a user asks about topics unrelated to beauty or L'Oréal (e.g., politics, legal or medical diagnoses, finance, or other non-beauty subjects), politely refuse and say you can only help with L'Oréal and beauty-related questions. For health or medical concerns, suggest consulting a qualified professional. Keep responses friendly, concise, and focused on helping the user find the best L'Oréal products or routines.",
     },
     { role: "user", content: text },
   ];
