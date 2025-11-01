@@ -9,10 +9,75 @@ chatWindow.textContent = "👋 Hello! How can I help you today?";
 /* Handle form submit */
 chatForm.addEventListener("submit", (e) => {
   e.preventDefault();
+  // Read and trim user input
+  const text = userInput.value.trim();
+  if (!text) return;
 
-  // When using Cloudflare, you'll need to POST a `messages` array in the body,
-  // and handle the response using: data.choices[0].message.content
+  // Append user's message
+  appendMessage("user", text);
+  userInput.value = "";
 
-  // Show message
-  chatWindow.innerHTML = "Connect to the OpenAI API for a response!";
+  // Disable input while fetching
+  userInput.disabled = true;
+
+  // Determine worker URL — allow an override from secrets.js if present
+  const workerUrl =
+    (window.__SECRETS &&
+      window.__SECRETS.getWorkerUrl &&
+      window.__SECRETS.getWorkerUrl()) ||
+    "https://lorealchatbot.sherreo99.workers.dev/";
+
+  // Show a loading message
+  const loading = appendMessage("ai", "…thinking");
+
+  // Build messages array for Chat Completions API
+  const messages = [
+    {
+      role: "system",
+      content: "You are a helpful assistant for L'Oréal product information.",
+    },
+    { role: "user", content: text },
+  ];
+
+  // Send to worker and handle response
+  fetch(workerUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model: "gpt-4o", messages }),
+  })
+    .then(async (res) => {
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`Worker error (${res.status}): ${txt}`);
+      }
+      return res.json();
+    })
+    .then((data) => {
+      const assistantText =
+        data?.choices?.[0]?.message?.content ||
+        "Sorry — no response from assistant.";
+      loading.textContent = assistantText;
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    })
+    .catch((err) => {
+      console.error(err);
+      loading.textContent = "Error: could not get response. Check console.";
+    })
+    .finally(() => {
+      userInput.disabled = false;
+      userInput.focus();
+    });
 });
+
+/**
+ * Append a chat message to the window.
+ * Returns the created element for further updates.
+ */
+function appendMessage(role, text) {
+  const el = document.createElement("div");
+  el.className = `msg ${role}`;
+  el.textContent = text;
+  chatWindow.appendChild(el);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+  return el;
+}
