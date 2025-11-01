@@ -35,7 +35,18 @@ chatForm.addEventListener("submit", (e) => {
       window.__SECRETS.getWorkerUrl &&
       window.__SECRETS.getWorkerUrl()) ||
     "https://lorealchatbot.sherreo99.workers.dev/";
- 
+  // Display the user's latest question above the chat response area.
+  // Create the element if it doesn't exist, and overwrite its text each submit
+  let latestEl = document.getElementById("latestQuestion");
+  if (!latestEl) {
+    latestEl = document.createElement("div");
+    latestEl.id = "latestQuestion";
+    latestEl.className = "latest-question";
+    // place the latest question at the end of chatWindow so assistant reply appears below
+    chatWindow.appendChild(latestEl);
+  }
+  latestEl.textContent = text;
+
   // Show a loading message (assistant reply will appear below the latest question)
   const loading = appendMessage("ai", "…thinking");
 
