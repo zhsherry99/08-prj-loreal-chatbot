@@ -11,6 +11,8 @@ body {
   color: #333;
   display: flex;
   justify-content: center;
+  background: #E3A;
+  min-height: 100vh;
 }
 
 .page-wrapper {
